@@ -28,8 +28,10 @@ SRCS=""; for f in common mnemonics error ieee80 dictionary encoding intonation l
   phoneme phonemelist readclause setlengths soundicon spect ssml synthdata synthesize tr_languages \
   translate translateword voices wavegen speech espeak_api klatt compiledata compiledict; do SRCS="$SRCS $L/$f.c"; done
 for f in case categories ctype proplist scripts tostring; do SRCS="$SRCS $U/$f.c"; done
+SONIC=../../third_party/sonic                  # libsonic 0.2.0 (Apache-2.0), for rates above 450 wpm
+SRCS="$SRCS $SONIC/sonic.c"
 mkdir -p cfg; cp espeak_config.h cfg/config.h
-python3 -m ziglang cc -target wasm32-wasi -O2 -s -mexec-model=reactor -Icfg -I$ES/src/include -I$U/include -I$L \
+python3 -m ziglang cc -target wasm32-wasi -O2 -s -mexec-model=reactor -Icfg -I$ES/src/include -I$U/include -I$L -I$SONIC \
   -DLIBESPEAK_NG_EXPORT=1 '-DPATH_ESPEAK_DATA="/espeak-ng-data"' -fwrapv -w f3speak.c $SRCS -o $OUT/f3speak.wasm
 # 4) libopus encoder (same vendored 1.5.2 + fixed point as tools/opus_tool) -> WASI reactor
 O=../../third_party/opus

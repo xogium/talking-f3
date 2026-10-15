@@ -277,6 +277,13 @@ Each clip is synthesized, resampled to 16 kHz, and encoded with libopus (VOIP mo
 Japanese corrections from a native speaker (tkna, 2026-10-14) are in `spoken_overrides.py`
 and the extra words; a spoken override of `None` silences a popup line.
 
+**Speeds above 450 words per minute (patcher).** eSpeak NG stops getting faster at 450. The
+patcher's eSpeak is built with libsonic (`third_party/sonic`, `USE_LIBSONIC` in
+`patcher/wasm/espeak_config.h`): from 450 up to the page's limit of 1000, eSpeak speaks at its
+normal rate and libsonic speeds the audio up by the remaining factor. Below 450 the output is
+byte-for-byte the same as without libsonic. The PC generator (`tools/gen_flash_bank.py`) uses the
+system's `espeak-ng`, which may be built without libsonic and then caps at 450.
+
 **Sound quality (patcher option).** The bank header's rate field sets the clip rate, and the
 engine decodes at it: 8 kHz narrowband for 6 kbps, 16 kHz wideband for 8 to 16 kbps (the
 default), 24 kHz super-wideband for 24, 32 and 48 kbps (eSpeak's output is 22.05 kHz, so 24 kHz
@@ -368,5 +375,5 @@ Diagnostic module builds: `sh arm/build.sh _probe -DOPUS_PROBE=1` (also `MON_PRO
 
 Engine, tools and documentation: this project, MIT licence (`LICENSE`), © 2026 Casey Reeves.
 The built patcher page is GPL-3.0-or-later as a whole, because it contains eSpeak NG. Speech: eSpeak NG (GPL-3.0). Audio coding:
-Opus / libopus (BSD-3-Clause). Text preparation: pypinyin (MIT), pykakasi (GPL-3.0). The
+Opus / libopus (BSD-3-Clause). Fast speech: libsonic (Apache-2.0). Text preparation: pypinyin (MIT), pykakasi (GPL-3.0). The
 F3 firmware is Zoom's and is not distributed here.

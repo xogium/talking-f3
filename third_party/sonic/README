@@ -1,0 +1,2 @@
+libsonic release-0.2.0 (https://github.com/waywardgeek/sonic, tag release-0.2.0), unmodified: sonic.c, sonic.h, COPYING (Apache-2.0).
+Used by eSpeak NG in the patcher for speech rates above 450 words per minute.

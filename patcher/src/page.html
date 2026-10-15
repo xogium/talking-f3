@@ -108,7 +108,8 @@ footer p { max-width: none; }
   </div>
   <div class="field">
     <label for="rate">Speed, in words per minute: <output id="rateOut" for="rate">300</output></label>
-    <input type="range" id="rate" min="150" max="450" step="10" value="300">
+    <input type="range" id="rate" min="150" max="1000" step="10" value="300">
+    <p class="hint">Above 450 words per minute the voice is sped up with libsonic, which keeps it clear at very fast rates.</p>
     <details>
       <summary>Different speed for some languages</summary>
       <p class="hint">Leave a box empty to use the speed above.</p>
@@ -167,7 +168,7 @@ footer p { max-width: none; }
 </section>
 
 <footer>
-  <p>Talking F3 is an independent accessibility project, not made or supported by Zoom. It changes only the main firmware area, never the boot area, and checks every file before offering it. Voices: eSpeak NG (GPL-3.0); audio coding: Opus (BSD). Source code, technical notes and the F3 guide for blind users: <a href="https://github.com/xogium/talking-f3">github.com/xogium/talking-f3</a>.</p>
+  <p>Talking F3 is an independent accessibility project, not made or supported by Zoom. It changes only the main firmware area, never the boot area, and checks every file before offering it. Voices: eSpeak NG (GPL-3.0) with libsonic (Apache-2.0); audio coding: Opus (BSD). Source code, technical notes and the F3 guide for blind users: <a href="https://github.com/xogium/talking-f3">github.com/xogium/talking-f3</a>.</p>
 </footer>
 </main>
 
@@ -190,7 +191,7 @@ for (const l of DATA.langs) {
   w.innerHTML = `<input type="checkbox" id="${id}" checked><label for="${id}"></label>`;
   w.querySelector("label").textContent = l.name; $("langs").appendChild(w);
   const r = document.createElement("div"); r.className = "field";
-  r.innerHTML = `<label for="rate_${l.key}"></label><input type="number" id="rate_${l.key}" min="150" max="450" step="10" placeholder="same">`;
+  r.innerHTML = `<label for="rate_${l.key}"></label><input type="number" id="rate_${l.key}" min="150" max="1000" step="10" placeholder="same">`;
   r.querySelector("label").textContent = l.name; $("rates").appendChild(r);
   const o = document.createElement("option"); o.value = l.key; o.textContent = l.name; $("previewLang").appendChild(o);
 }
@@ -204,7 +205,7 @@ bindOut("pitch", "pitchOut"); bindOut("rate", "rateOut");
 
 function settings() {
   const rates = {};
-  for (const l of DATA.langs) { const v = parseInt($("rate_" + l.key).value, 10); if (v >= 80 && v <= 500) rates[l.key] = v; }
+  for (const l of DATA.langs) { const v = parseInt($("rate_" + l.key).value, 10); if (v >= 80 && v <= 1000) rates[l.key] = v; }
   return { variant: $("variant").value, pitch: +$("pitch").value, rate: +$("rate").value, rates,
            langs: DATA.langs.filter(l => $("lang_" + l.key).checked).map(l => l.key),
            level: +$("level").value, chime: $("chime").checked, kbps: +$("quality").value };

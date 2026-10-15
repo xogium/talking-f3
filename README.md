@@ -62,6 +62,7 @@ tools/                  clip bank generator, image builder, firmware unpacker, G
                         emulator tests
 patcher/                the patcher's source: page, core, WebAssembly wrappers and build scripts
 third_party/opus/       libopus 1.5.2
+third_party/sonic/      libsonic 0.2.0, for speech above 450 words per minute
 F3_strings_all_langs.json   the F3's interface texts in its 7 languages, by string id
 ```
 
@@ -73,7 +74,7 @@ on the copy each user downloads from Zoom.
 - The project's own code and documents are under the **MIT licence** ([LICENSE](LICENSE)),
   © 2026 Casey Reeves <contact@xogium.me>. Each file says so in its SPDX header.
 - The built patcher page (`index.html`) also contains eSpeak NG and libopus compiled to
-  WebAssembly. As a whole it is distributed under **GPL-3.0-or-later**, as eSpeak NG requires.
+  WebAssembly, with libsonic. As a whole it is distributed under **GPL-3.0-or-later**, as eSpeak NG requires.
   The project's code inside it stays MIT, which is compatible.
 - `F3_strings_all_langs.json` holds the F3's interface texts, extracted from Zoom's firmware.
   They are Zoom's text, not covered by the project's licence, and included only so that the
@@ -82,6 +83,8 @@ on the copy each user downloads from Zoom.
   unmodified 1.52.0 release (<https://github.com/espeak-ng/espeak-ng/tree/1.52.0>) by
   `patcher/wasm/build_wasm.sh`, with the wrapper `patcher/wasm/f3speak.c` and its
   configuration `patcher/wasm/espeak_config.h`.
+- **libsonic** 0.2.0 (Apache-2.0, `third_party/sonic/COPYING`) lets eSpeak NG speak faster than
+  450 words per minute in the patcher.
 - **libopus** 1.5.2 (BSD-3-Clause, `third_party/opus/COPYING`) encodes and decodes the voice.
 
 This is an independent accessibility project, not made, endorsed or supported by Zoom.

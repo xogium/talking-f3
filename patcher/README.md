@@ -12,7 +12,7 @@ loudness and chime.
   build and the same safety checks as tools/build_flash_image.py. Runs in browsers and Node.
 - `src/page.html` — the accessible form; `build_patcher.py` inlines everything into one file.
 - `wasm/` — `f3speak.c` (espeak-ng as a WASI reactor library) and `f3opus.c` (libopus encoder),
-  built with zig by `build_wasm.sh`, which also extracts the 7-language espeak-ng data.
+  built with zig by `build_wasm.sh` (eSpeak NG with libsonic from `third_party/sonic`, for rates above 450 wpm), which also extracts the 7-language espeak-ng data.
 - `export_data.py` — exports the language-independent parts (bank plans from
   tools/gen_flash_bank.py, the encoded chime, the voice module, the stock file's SHA-256).
 - `test/node_build.js` builds an image in Node; `test/ui_test.js` drives the real page in

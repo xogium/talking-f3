@@ -250,7 +250,8 @@ function estimateSize(data, settings) {
   for (const lang of data.langs) {
     if (!settings.langs.includes(lang.key)) continue;
     const wpm = (settings.rates && settings.rates[lang.key]) || settings.rate;
-    size += lang.dur300 * (300 / wpm) * q.bps + lang.nslots * 14 + 16;
+    const t = Math.max(300 / wpm, 0.07 + 0.93 * 300 / wpm);   /* fast rates shrink less (pauses, libsonic): measured at 900 */
+    size += lang.dur300 * t * q.bps + lang.nslots * 14 + 16;
   }
   return size;
 }

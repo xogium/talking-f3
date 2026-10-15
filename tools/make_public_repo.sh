@@ -28,7 +28,7 @@ cp patcher/src/core.js patcher/src/page.html "$OUT/patcher/src/"
 cp patcher/wasm/f3speak.c patcher/wasm/f3opus.c patcher/wasm/espeak_config.h \
    patcher/wasm/build_wasm.sh "$OUT/patcher/wasm/"
 cp patcher/test/*.js "$OUT/patcher/test/"
-cp -r third_party/opus "$OUT/third_party/"
+cp -r third_party/opus third_party/sonic "$OUT/third_party/"
 find "$OUT" -name __pycache__ -prune -exec rm -rf {} +
 # safety: nothing firmware-like or built may be in the tree
 if find "$OUT" -path "$OUT/.git" -prune -o -type f \( -iname "*.bin" -o -name "*.elf" -o -name "*.o" \) -print | grep -q .; then

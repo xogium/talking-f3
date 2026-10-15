@@ -26,11 +26,13 @@ def main():
                  "/*VARIANTS*/[]": json.dumps(variants)}.items():
         assert k in page, k
         page = page.replace(k, v.replace("</script", "<\\/script"))
-    # The built page contains eSpeak NG (GPL-3.0-or-later) and libopus (BSD-3-Clause) compiled
+    # The built page contains eSpeak NG (GPL-3.0-or-later) with libsonic (Apache-2.0) and libopus
+    # (BSD-3-Clause) compiled
     # to WebAssembly: as a whole it is distributed under GPL-3.0-or-later (the project's own
     # code in it stays MIT, which is compatible).
     note = ("<!-- This built page also contains eSpeak NG 1.52.0 (GPL-3.0-or-later,\n"
-            "     https://github.com/espeak-ng/espeak-ng) and libopus 1.5.2 (BSD-3-Clause), compiled to\n"
+            "     https://github.com/espeak-ng/espeak-ng) with libsonic 0.2.0 (Apache-2.0) and libopus 1.5.2\n"
+            "     (BSD-3-Clause), compiled to\n"
             "     WebAssembly. The page as a whole is distributed under GPL-3.0-or-later; source:\n"
             "     https://github.com/xogium/talking-f3 -->")
     a = page.index("-->", page.index("SPDX-License-Identifier")) + 3
