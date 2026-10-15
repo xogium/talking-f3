@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Casey Reeves <contact@xogium.me>
+# SPDX-License-Identifier: MIT
+# Never commit Zoom's firmware or anything built from it
+*.BIN
+*.bin
+*.elf
+*.o
+*.a
+build/
+dist/
+arm/opus_obj/
+patcher/build/
+patcher/wasm/out/
+patcher/wasm/cfg/
+patcher/wasm/espeak-ng-*/
+tools/opus_tool
+__pycache__/
+node_modules/
