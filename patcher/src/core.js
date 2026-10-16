@@ -337,6 +337,35 @@ function sha256js(m) {
 }
 
 /* Check the user's file is the stock v2.20 image this patch was made for. */
+/* Zoom's download is a zip (F3_v2.20_E/F3SYSTEM.BIN plus two PDFs): accept it as is.
+ * Returns F3SYSTEM.BIN's bytes, or null if `bytes` is not a zip (then it is used as the file
+ * itself). Reads the central directory (the entries use data descriptors, so the local
+ * headers carry no sizes); deflate via the browser's DecompressionStream. */
+const ZIP_NO_F3 = "This zip file does not contain an F3SYSTEM.BIN.";
+async function extractStock(bytes) {
+  const u32 = (o) => (bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16 | bytes[o + 3] << 24) >>> 0;
+  const u16 = (o) => bytes[o] | bytes[o + 1] << 8;
+  if (bytes.length < 22 || u32(0) !== 0x04034b50) return null;              // not a zip
+  let e = -1;
+  for (let o = bytes.length - 22; o >= Math.max(0, bytes.length - 65557); o--) if (u32(o) === 0x06054b50) { e = o; break; }
+  if (e < 0) throw new Error("This zip file is damaged. Download it again from zoomcorp.com.");
+  let o = u32(e + 16);
+  for (let i = 0, n = u16(e + 10); i < n && u32(o) === 0x02014b50; i++) {
+    const method = u16(o + 10), csize = u32(o + 20), usize = u32(o + 24);
+    const nl = u16(o + 28), xl = u16(o + 30), cl = u16(o + 32), loc = u32(o + 42);
+    const name = String.fromCharCode(...bytes.subarray(o + 46, o + 46 + nl));
+    o += 46 + nl + xl + cl;
+    if (!/(^|\/)F3SYSTEM\.BIN$/i.test(name)) continue;
+    const start = loc + 30 + u16(loc + 26) + u16(loc + 28), raw = bytes.subarray(start, start + csize);
+    if (method === 0) return raw.slice();
+    if (method !== 8) throw new Error("This zip file uses an unsupported compression. Unzip it and choose the F3SYSTEM.BIN inside.");
+    const out = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    if (out.length !== usize) throw new Error("This zip file is damaged. Download it again from zoomcorp.com.");
+    return out;
+  }
+  throw new Error(ZIP_NO_F3);
+}
+
 async function checkStock(data, stock) {
   if (stock.length !== data.stock.size) return "This file has the wrong size for an F3 firmware file (F3SYSTEM.BIN).";
   const ver = String.fromCharCode(...stock.subarray(IMG.VER, IMG.VER + 4));
@@ -378,5 +407,5 @@ function verifyImage(stock, img) {
   for (let i = 0x211242; i < 0x211282; i++) if (img[i] !== stock[i]) throw new Error("audio loop changed");
 }
 
-const F3Patcher = { QUALITIES, quality, estimateSize, voiceRoom, sha256js, makeWasi, loadEspeak, loadOpus, resample, assembleBank, buildBanks, checkStock, buildImage, verifyImage, thumbBW, b64 };
+const F3Patcher = { extractStock, QUALITIES, quality, estimateSize, voiceRoom, sha256js, makeWasi, loadEspeak, loadOpus, resample, assembleBank, buildBanks, checkStock, buildImage, verifyImage, thumbBW, b64 };
 if (typeof module !== "undefined") module.exports = F3Patcher; else globalThis.F3Patcher = F3Patcher;

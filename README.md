@@ -24,8 +24,9 @@ It is a single web page that runs entirely in your browser. Nothing is uploaded,
 firmware file never leaves your computer. To use it offline, save the page (it is
 `index.html` in this repository) and open it from your disk.
 
-1. Download Zoom's official F3 firmware **version 2.20** from zoomcorp.com and unzip it.
-2. In the patcher, choose its `F3SYSTEM.BIN`, then pick:
+1. Download Zoom's official F3 firmware **version 2.20**:
+   [F3_v2.20_E.zip](https://zoomcorp.com/documents/2366/F3_v2.20_E.zip) from zoomcorp.com.
+2. In the patcher, choose that zip file as it is (no need to unzip it), then pick:
    - languages;
    - voice, pitch and speed;
    - sound quality and loudness;

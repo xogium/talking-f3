@@ -82,14 +82,14 @@ footer p { max-width: none; }
 <main>
 <h1>Talking F3 Patcher</h1>
 <p class="lead">Makes a version of the Zoom F3 firmware that speaks its menus, popups, dialogs, file names and status out loud, through the headphones. Everything happens on this computer: nothing is uploaded, and no internet connection is needed.</p>
-<p class="lead">You need the official Zoom F3 firmware <strong>version 2.20</strong> (the file <code>F3SYSTEM.BIN</code> from Zoom's F3 download page) and a microSD card.</p>
+<p class="lead">You need the official Zoom F3 firmware <strong>version 2.20</strong> (<a href="https://zoomcorp.com/documents/2366/F3_v2.20_E.zip">download it from zoomcorp.com</a>, a zip file) and a microSD card.</p>
 
 <section class="step" aria-labelledby="h-file">
   <h2 id="h-file"><span class="n">1.</span>Choose Zoom's firmware file</h2>
   <div class="field">
-    <label for="stock">Official F3SYSTEM.BIN, version 2.20</label>
-    <input type="file" id="stock" accept=".bin,.BIN">
-    <p class="hint">Download the F3 firmware from zoomcorp.com, unzip it, and choose the F3SYSTEM.BIN inside.</p>
+    <p class="hint" id="stockHint">First <a href="https://zoomcorp.com/documents/2366/F3_v2.20_E.zip">download Zoom's F3 firmware 2.20</a> (F3_v2.20_E.zip, from zoomcorp.com). Then choose that zip file below, as it is: no need to unzip it. An F3SYSTEM.BIN already taken out of the zip works too.</p>
+    <label for="stock">Zoom's firmware: the zip file, or the F3SYSTEM.BIN inside it</label>
+    <input type="file" id="stock" accept=".zip,.ZIP,.bin,.BIN" aria-describedby="stockHint">
   </div>
   <div id="fileMsg" role="status" aria-live="polite"></div>
 </section>
@@ -516,6 +516,35 @@ function sha256js(m) {
 }
 
 /* Check the user's file is the stock v2.20 image this patch was made for. */
+/* Zoom's download is a zip (F3_v2.20_E/F3SYSTEM.BIN plus two PDFs): accept it as is.
+ * Returns F3SYSTEM.BIN's bytes, or null if `bytes` is not a zip (then it is used as the file
+ * itself). Reads the central directory (the entries use data descriptors, so the local
+ * headers carry no sizes); deflate via the browser's DecompressionStream. */
+const ZIP_NO_F3 = "This zip file does not contain an F3SYSTEM.BIN.";
+async function extractStock(bytes) {
+  const u32 = (o) => (bytes[o] | bytes[o + 1] << 8 | bytes[o + 2] << 16 | bytes[o + 3] << 24) >>> 0;
+  const u16 = (o) => bytes[o] | bytes[o + 1] << 8;
+  if (bytes.length < 22 || u32(0) !== 0x04034b50) return null;              // not a zip
+  let e = -1;
+  for (let o = bytes.length - 22; o >= Math.max(0, bytes.length - 65557); o--) if (u32(o) === 0x06054b50) { e = o; break; }
+  if (e < 0) throw new Error("This zip file is damaged. Download it again from zoomcorp.com.");
+  let o = u32(e + 16);
+  for (let i = 0, n = u16(e + 10); i < n && u32(o) === 0x02014b50; i++) {
+    const method = u16(o + 10), csize = u32(o + 20), usize = u32(o + 24);
+    const nl = u16(o + 28), xl = u16(o + 30), cl = u16(o + 32), loc = u32(o + 42);
+    const name = String.fromCharCode(...bytes.subarray(o + 46, o + 46 + nl));
+    o += 46 + nl + xl + cl;
+    if (!/(^|\/)F3SYSTEM\.BIN$/i.test(name)) continue;
+    const start = loc + 30 + u16(loc + 26) + u16(loc + 28), raw = bytes.subarray(start, start + csize);
+    if (method === 0) return raw.slice();
+    if (method !== 8) throw new Error("This zip file uses an unsupported compression. Unzip it and choose the F3SYSTEM.BIN inside.");
+    const out = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    if (out.length !== usize) throw new Error("This zip file is damaged. Download it again from zoomcorp.com.");
+    return out;
+  }
+  throw new Error(ZIP_NO_F3);
+}
+
 async function checkStock(data, stock) {
   if (stock.length !== data.stock.size) return "This file has the wrong size for an F3 firmware file (F3SYSTEM.BIN).";
   const ver = String.fromCharCode(...stock.subarray(IMG.VER, IMG.VER + 4));
@@ -557,7 +586,7 @@ function verifyImage(stock, img) {
   for (let i = 0x211242; i < 0x211282; i++) if (img[i] !== stock[i]) throw new Error("audio loop changed");
 }
 
-const F3Patcher = { QUALITIES, quality, estimateSize, voiceRoom, sha256js, makeWasi, loadEspeak, loadOpus, resample, assembleBank, buildBanks, checkStock, buildImage, verifyImage, thumbBW, b64 };
+const F3Patcher = { extractStock, QUALITIES, quality, estimateSize, voiceRoom, sha256js, makeWasi, loadEspeak, loadOpus, resample, assembleBank, buildBanks, checkStock, buildImage, verifyImage, thumbBW, b64 };
 if (typeof module !== "undefined") module.exports = F3Patcher; else globalThis.F3Patcher = F3Patcher;
 </script>
 <script>
@@ -628,7 +657,9 @@ $("stock").addEventListener("change", async () => {
   stock = null; $("build").disabled = true; $("result").innerHTML = "";
   const f = $("stock").files[0]; if (!f) return;
   msg($("fileMsg"), "Checking the file…");
-  const bytes = new Uint8Array(await f.arrayBuffer());
+  let bytes = new Uint8Array(await f.arrayBuffer());
+  try { const inner = await P.extractStock(bytes); if (inner) bytes = inner; }
+  catch (e) { msg($("fileMsg"), e.message, "bad"); return; }
   const err = await P.checkStock(DATA, bytes);
   if (err) { msg($("fileMsg"), err, "bad"); return; }
   stock = bytes; $("build").disabled = false;

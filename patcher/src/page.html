@@ -77,14 +77,14 @@ footer p { max-width: none; }
 <main>
 <h1>Talking F3 Patcher</h1>
 <p class="lead">Makes a version of the Zoom F3 firmware that speaks its menus, popups, dialogs, file names and status out loud, through the headphones. Everything happens on this computer: nothing is uploaded, and no internet connection is needed.</p>
-<p class="lead">You need the official Zoom F3 firmware <strong>version 2.20</strong> (the file <code>F3SYSTEM.BIN</code> from Zoom's F3 download page) and a microSD card.</p>
+<p class="lead">You need the official Zoom F3 firmware <strong>version 2.20</strong> (<a href="https://zoomcorp.com/documents/2366/F3_v2.20_E.zip">download it from zoomcorp.com</a>, a zip file) and a microSD card.</p>
 
 <section class="step" aria-labelledby="h-file">
   <h2 id="h-file"><span class="n">1.</span>Choose Zoom's firmware file</h2>
   <div class="field">
-    <label for="stock">Official F3SYSTEM.BIN, version 2.20</label>
-    <input type="file" id="stock" accept=".bin,.BIN">
-    <p class="hint">Download the F3 firmware from zoomcorp.com, unzip it, and choose the F3SYSTEM.BIN inside.</p>
+    <p class="hint" id="stockHint">First <a href="https://zoomcorp.com/documents/2366/F3_v2.20_E.zip">download Zoom's F3 firmware 2.20</a> (F3_v2.20_E.zip, from zoomcorp.com). Then choose that zip file below, as it is: no need to unzip it. An F3SYSTEM.BIN already taken out of the zip works too.</p>
+    <label for="stock">Zoom's firmware: the zip file, or the F3SYSTEM.BIN inside it</label>
+    <input type="file" id="stock" accept=".zip,.ZIP,.bin,.BIN" aria-describedby="stockHint">
   </div>
   <div id="fileMsg" role="status" aria-live="polite"></div>
 </section>
@@ -241,7 +241,9 @@ $("stock").addEventListener("change", async () => {
   stock = null; $("build").disabled = true; $("result").innerHTML = "";
   const f = $("stock").files[0]; if (!f) return;
   msg($("fileMsg"), "Checking the file…");
-  const bytes = new Uint8Array(await f.arrayBuffer());
+  let bytes = new Uint8Array(await f.arrayBuffer());
+  try { const inner = await P.extractStock(bytes); if (inner) bytes = inner; }
+  catch (e) { msg($("fileMsg"), e.message, "bad"); return; }
   const err = await P.checkStock(DATA, bytes);
   if (err) { msg($("fileMsg"), err, "bad"); return; }
   stock = bytes; $("build").disabled = false;

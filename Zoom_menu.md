@@ -29,7 +29,7 @@ It speaks in the language the F3 is set to: English, French, German, Italian, Sp
 ## The patcher ##
 You make the talking firmware yourself with the **Talking F3 Patcher**, a single web page (talking-f3-patcher.html) that works in any web browser, on Windows, macOS or Linux. It works offline: nothing is uploaded anywhere. It is accessible with a screen reader.
 
-The patcher asks for Zoom's official F3SYSTEM.BIN, version 2.20, from the F3 download page on zoomcorp.com. It then lets you choose:
+The patcher asks for Zoom's official F3 firmware, version 2.20: download [F3_v2.20_E.zip](https://zoomcorp.com/documents/2366/F3_v2.20_E.zip) from zoomcorp.com and give the patcher that zip file as it is, no need to unzip it. It then lets you choose:
 * which languages to include (languages left out fall back to English),
 * the voice variant, its pitch and its speed (up to 1000 words per minute), with a different speed per language if you wish,
 * the sound quality: higher quality sounds clearer but takes more room. The F3 has room for about 4 MB of voices, enough for all seven languages at the standard quality; with a single language you can choose the highest quality. The patcher shows an estimate of the size as you change the settings,
