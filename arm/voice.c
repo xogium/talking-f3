@@ -687,6 +687,63 @@ static void dt_add_field(uint32_t id){
 #define ZM_LABELS   0x80165140u
 static uint32_t g_zm_last;                     /* (open<<8)|idx last spoken */
 
+/* Next recording's file name (record start: FUN_80005a28 -> FUN_800362b8 -> FUN_80035d70 ->
+ * FUN_80032ee8 "base_NNN"). Mode u8 @0x804BEBBA: 0 = date, 1 = user defined name. Base: the
+ * user defined name (UTF-16 @0x804BEBBC), or in date mode the date string of the last file
+ * scan (UTF-16 @0x804BEA94, refreshed by FUN_80036688; if the date has changed since, the F3
+ * rescans when recording starts). Take number for the new file: s16 @0x804BEBA8; "_NNN" is
+ * added only when it is above 0. */
+#define REC_NAME_MODE (*(volatile uint8_t*)0x804BEBBAu)
+#define REC_USER_NAME ((const volatile uint16_t*)0x804BEBBCu)
+#define REC_DATE_BASE ((const volatile uint16_t*)0x804BEA94u)
+#define REC_NEXT_TAKE (*(volatile int16_t*)0x804BEBA8u)
+#define CLIP_NEXT_FILE 832u
+#define CLIP_SECONDS   831u
+static int next_rec_name(uint16_t *out, uint32_t cap){
+    uint32_t m = REC_NAME_MODE;
+    const volatile uint16_t *b = (m == 1u) ? REC_USER_NAME : (m == 0u ? REC_DATE_BASE : 0);
+    uint32_t n = 0;
+    if (b) while (n < cap - 6u && b[n] >= 0x20u && b[n] < 0x7Fu) n++;
+    if (b && b[n] != 0) n = 0;                      /* not a clean ASCII name: don't guess */
+    for (uint32_t i = 0; i < n; i++) out[i] = b[i];
+    int32_t t = REC_NEXT_TAKE;
+    if (n && t > 0 && t <= 999){
+        out[n++] = '_'; out[n++] = (uint16_t)('0' + t / 100); out[n++] = (uint16_t)('0' + (t / 10) % 10);
+        out[n++] = (uint16_t)('0' + t % 10);
+    }
+    out[n] = 0;
+    return n != 0;
+}
+
+/* Playback seek (FF / REW by holding Enter / Back; handler FUN_800346d0 cases 10 and 0xd):
+ * u8 @0x8054527A = 1 while seeking. Position u64 samples @0x80301698 (set on release),
+ * length u64 samples @0x80302158, the file's sample rate u32 @0x80301CD8. When a seek ends
+ * the time left in the file is spoken. */
+#define PB_SEEKING (*(volatile uint8_t*)0x8054527Au)
+#define PB_RATE    (*(volatile uint32_t*)0x80301CD8u)
+static uint64_t rd64(uint32_t a){                   /* written by another task: re-read on a tear */
+    for (int k = 0; k < 3; k++){
+        uint32_t h = *(volatile uint32_t*)(a + 4u), l = *(volatile uint32_t*)a;
+        if (h == *(volatile uint32_t*)(a + 4u)) return ((uint64_t)h << 32) | l;
+    }
+    return 0;
+}
+static uint32_t g_pb_seek, g_pb_wait;
+static inline uint32_t ticks_per_s(void);
+static void say_time_left(void){
+    uint64_t T = rd64(0x80302158u), P = rd64(0x80301698u);
+    uint32_t r = PB_RATE;
+    if (r < 8000u || r > 192000u || T == 0) return;
+    uint32_t sec = (T > P) ? (uint32_t)((T - P) / r) : 0u;
+    if (sec > 359999u) return;
+    uint32_t h = sec / 3600u, m = (sec % 3600u) / 60u, sc = sec % 60u;
+    say_clear(); say_add(37u);                       /* "Remaining Time" */
+    if (h){ say_int(h); say_add(751u); }
+    if (h || m){ say_int(m); say_add(752u); }
+    if (sc || !(h || m)){ say_int(sc); say_add(CLIP_SECONDS); }   /* no "0 seconds" after minutes */
+    say_go();
+}
+
 /* Name editor (screen object 5, handler FUN_8002a320, Enter FUN_8005ecb8, typing FUN_8005f1d8):
  * row u8 @0x804C02A4 (0 uppercase, 1 lowercase, 2 digits and symbols); focused key u16
  * @0x804C02A6: 0..28 = character (row*29 + key) of the table @0x80166FEC, 29 switch row,
@@ -963,6 +1020,8 @@ void voice_poll(void){
         if (lv == 5u) say_add(754u);                    /* "external power" */
         else if (lv <= 4u){ say_int(lv); say_add(CLIP_OF); say_int(4u); }
         if (bt <= 2u) say_add(67u + bt);                /* Alkaline / Ni-MH / Lithium */
+        { uint16_t nm[64];                              /* "next file": the name the next take gets */
+          if (next_rec_name(nm, 64u)){ say_add(CLIP_NEXT_FILE); say_text(nm); } }
 #if OPUS_PROBE
         { uint32_t us = g_omaxcyc / 528u; say_int(us > 9999u ? 9999u : us);
           say_int(g_olate > 9999u ? 9999u : g_olate);
@@ -1030,9 +1089,15 @@ void voice_poll(void){
     if (scr_ready(SCR_PLAY)){
         int fresh = (g_scr_last != SCR_PLAY);
         if (fresh){                       /* say "Play" at once: the voice takes the output */
-            g_scr_last = SCR_PLAY; g_fd_said = 0xFFFFFFFFu; g_fd_cand = 0xFFFFFFFEu;
+            g_scr_last = SCR_PLAY; g_fd_said = 0xFFFFFFFFu; g_fd_cand = 0xFFFFFFFEu; g_pb_seek = 0;
             say_clear(); say_add(18u); say_go();                  /* before playback is heard */
             return;
+        }
+        if (PB_SEEKING){ g_pb_seek = 1u; g_pb_wait = 0; return; }        /* holding FF / REW */
+        if (g_pb_seek){                                  /* released: once the position settles */
+            uint32_t need = (ticks_per_s() * 150u) / 1000u / (MT_THROTTLE + 1u);   /* ~150 ms */
+            if (++g_pb_wait <= (need < 3u ? 3u : need)) return;
+            g_pb_seek = 0; say_time_left(); return;
         }
         int32_t idx = CUR_FILE;
         if (idx < 0 || idx > 999) return;

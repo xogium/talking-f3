@@ -22,7 +22,8 @@ The rest of this guide is left as it was written in 2022. It is still for you if
 * Playback: the name of the file being played, and the file info pages (date and time, format, length).
 * The Versions screen.
 * The user defined name editor: every key as you move, each character you type or delete, and the whole name when you reach OK.
-* On the home screen, while not recording or playing, pressing stop tells you the remaining recording time and the battery level.
+* On the home screen, while not recording or playing, pressing stop tells you the remaining recording time, the battery level, and the name the next recording will get (so you can check it before pressing record).
+* During playback, after you fast forward or rewind (holding the enter or back button), it tells you how much time is left in the file.
 
 It speaks in the language the F3 is set to: English, French, German, Italian, Spanish, Chinese or Japanese. The voice follows the headphone volume buttons, and it is only heard in the output: it never ends up in your recordings. A short chime tells you when the F3 has started and the voice is ready.
 

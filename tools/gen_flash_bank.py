@@ -181,6 +181,19 @@ KEYBOARD = {
 }
 KEYBOARD_SLOTS = list(range(800, 810)) + list(range(810, 830)) + [830]
 
+# 831 "seconds" (playback: time left after fast-forward / rewind), 832 "next file" (the Stop
+# status: the name the next recording will get)
+STATUS2 = {
+ "EN": ["seconds", "next file"],
+ "FR": ["secondes", "prochain fichier"],
+ "DE": ["Sekunden", "nächste Datei"],
+ "IT": ["secondi", "prossimo file"],
+ "ES": ["segundos", "próximo archivo"],
+ "L5": ["秒", "下一个文件"],
+ "L6": ["びょう", "つぎの ファイル"],
+}
+STATUS2_SLOTS = [831, 832]
+
 # Units and technical words espeak would spell out ("k h z", "b i t"): replaced by the
 # spoken word in each language before synthesis. Display text (and so the runtime-text
 # lookup) is unchanged; only what the voice says differs.
@@ -288,6 +301,7 @@ def bank_plan(lang, strings=STRINGS):
     EXTRA[CHIME_ID] = "\u266a startup chime"
     EXTRA[RESET_NOTE_ID] = RESET_NOTE[lang]
     EXTRA.update(dict(zip(KEYBOARD_SLOTS, KEYBOARD[lang])))
+    EXTRA.update(dict(zip(STATUS2_SLOTS, STATUS2[lang])))
     for k, v in EXTRA.items(): tbl[str(k)] = v; ids.append(k)
     clips, keys, slots = [], {}, {}
     for sid in ids:

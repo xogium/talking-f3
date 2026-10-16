@@ -112,3 +112,17 @@ checked value, +0x14 s16 top visible row.
 | 0x804C02CC | text, UTF-16, up to 40 characters (mode 2); Enter on a character inserts it at the cursor (FUN_8005f1d8) |
 | 0x804C02A8 / 0x804C02AE | cursor position in the 13-character window / window scroll; cursor index = sum |
 | 0x804C058E | editor mode u8 (2 = user defined name; 0 and 1 unused stubs in the F3) |
+
+## Recording names and playback position
+
+| Address | What |
+|---|---|
+| 0x804BEBBA | Rec File Name mode u8: 0 date, 1 user defined name |
+| 0x804BEBBC | user defined name, UTF-16 |
+| 0x804BEA94 | base name of the last file scan, UTF-16 (the date string in date mode; FUN_80036688) |
+| 0x804BEBA8 | take number s16 the next recording gets (FUN_80037a60); name = base + "_NNN" if above 0 (FUN_80032ee8) |
+| 0x8054527A | u8 1 while fast-forwarding / rewinding in Playback (FUN_800346d0 case 10 sets, case 0xd clears) |
+| 0x80301698 | playback position u64, samples (FUN_80009530) |
+| 0x80302158 | playing file's length u64, samples (FUN_80009420) |
+| 0x80301CD8 | playing file's sample rate u32 (FUN_80009588) |
+| 0x80545280 | elapsed seconds shown on the Playback screen (widget 7, string 284) |
