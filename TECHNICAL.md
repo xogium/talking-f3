@@ -214,7 +214,7 @@ must also be stable for one poll before they are spoken.
 
 | What | How it is read |
 |---|---|
-| **Menus** | The menu is a static tree of 36-byte records in RW data (string id at +8, children at +0x0C, count at +0x10, checked value at +0x12, top row at +0x14). Navigation state: level `0x804BF76C`, depth per level `0x804BF76D`, node table `0x804BF774`, cursor row `0x804BF838`. The highlighted item is `children[top + row]`. Entering a menu says its title and the item; scrolling says the item; "selected" is added where the screen shows the check mark. |
+| **Menus** | The menu is a static tree of 36-byte records in RW data (string id at +8, children at +0x0C, count at +0x10, checked value at +0x12, top row at +0x14). Navigation state: level `0x804BF76C`, depth per level `0x804BF76D`, node table `0x804BF774`, cursor row `0x804BF838`. The highlighted item is `children[top + row]`. Entering a menu says its title and the item (the F3 reopens a menu where it was left, so any switch to a screen other than home makes the engine forget the position, and reopening is announced like entering); scrolling says the item; "selected" is added where the screen shows the check mark. |
 | **Popups** | Queue of popup numbers at 0x802AD61C (head 0x802AD63A, active flag 0x802AD638); each popup has three lines of string ids in a table at 0x80208A54. Lines are re-spoken when their text changes (the VOLUME popup level). |
 | **Dialogs** | Type at 0x804C058A (Format, Delete, Factory Reset, ...), focused button at 0x804C04F0. The Factory Reset dialog adds a sentence (clip 757) saying the F3 switches itself off afterwards. |
 | **Set Date/Time** | Focused field 0x804C04FC, edit mode 0x804C04FD, values from 0x804C04FE. |

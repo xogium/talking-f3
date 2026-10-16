@@ -1204,6 +1204,13 @@ void voice_poll(void){
         g_dt_pos = DT_POS; g_dt_edit = e; g_dt_val = v;
         return;
     }
+    {   /* Re-entering a menu: the F3 reopens it where it was left, so the position alone looks
+         * unchanged and nothing was said (Casey: Menu, back, Menu again: silent; same for the
+         * Input 1 / 2 settings). Any switch to a screen other than home forgets the position. */
+        static uint32_t scr_seen;
+        uint32_t sc = SCR_CUR;
+        if (sc != scr_seen){ scr_seen = sc; if (sc != SCR_HOME) g_mt_node = 0; }
+    }
     if (g_scr_last){                                    /* left a special screen */
         g_scr_last = 0;
         if (SCR_CUR == SCR_MENU) g_mt_sel = 0xFFFFFFFFu;   /* back in the menu: re-read the row */
