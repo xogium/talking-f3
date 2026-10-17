@@ -4,7 +4,7 @@
 # Zoom F3 #
 This guide is exclusively used for the F3 field recorder from Zoom, and is not applicable to any other models, not even in the same F series.
 
-This documentation is based on firmware version 2.0 of the F3. Make sure to run the same version in case the interfaces changes. Should it change in the future, this documentation will be updated to reflect such changes.
+This documentation is based on firmware version 2.20 of the F3 (it was first written for 2.0). Make sure to run the same version in case the interfaces changes. Should it change in the future, this documentation will be updated to reflect such changes.
 
 # The talking F3 (recommended) #
 Since 2026, there is a better way for blind people to use the F3: the **talking F3**. It is a patched version of Zoom's own firmware 2.20 that speaks what is on the screen, through the headphones. It is now the preferred way of using the F3 without sight.
@@ -28,7 +28,7 @@ The rest of this guide is left as it was written in 2022. It is still for you if
 It speaks in the language the F3 is set to: English, French, German, Italian, Spanish, Chinese or Japanese. The voice follows the headphone volume buttons, and it is only heard in the output: it never ends up in your recordings. A short chime tells you when the F3 has started and the voice is ready.
 
 ## The patcher ##
-You make the talking firmware yourself with the **Talking F3 Patcher**, a single web page (talking-f3-patcher.html) that works in any web browser, on Windows, macOS or Linux. It works offline: nothing is uploaded anywhere. It is accessible with a screen reader.
+You make the talking firmware yourself with the **Talking F3 Patcher**, a single web page that works in any web browser, on Windows, macOS or Linux: <https://xogium.github.io/talking-f3/>. You can also save that page and use it from your own computer. It works offline: nothing is uploaded anywhere. It is accessible with a screen reader.
 
 The patcher asks for Zoom's official F3 firmware, version 2.20: download [F3_v2.20_E.zip](https://zoomcorp.com/documents/2366/F3_v2.20_E.zip) from zoomcorp.com and give the patcher that zip file as it is, no need to unzip it. It then lets you choose:
 * which languages to include (languages left out fall back to English),

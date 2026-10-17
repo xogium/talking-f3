@@ -79,6 +79,25 @@ footer p { max-width: none; }
 <p class="lead">Makes a version of the Zoom F3 firmware that speaks its menus, popups, dialogs, file names and status out loud, through the headphones. Everything happens on this computer: nothing is uploaded, and no internet connection is needed.</p>
 <p class="lead">You need the official Zoom F3 firmware <strong>version 2.20</strong> (<a href="https://zoomcorp.com/documents/2366/F3_v2.20_E.zip">download it from zoomcorp.com</a>, a zip file) and a microSD card.</p>
 
+<section class="step" aria-labelledby="h-what">
+  <h2 id="h-what">What the talking F3 speaks</h2>
+  <ul>
+    <li>The menus as you move through them, and which option is currently selected in check box menus.</li>
+    <li>Language names in the Language menu, each in its own language.</li>
+    <li>Popups such as VOLUME, Hold, No SD Card and so on, including values that change while the popup is shown.</li>
+    <li>Execute/cancel and OK/cancel dialogs, with the option you are on.</li>
+    <li>The waveform magnification popup.</li>
+    <li>The Set Date/Time screen: which field you are on, its value, and when you start or finish editing it. Setting the date and time no longer needs sighted help or the bluetooth app.</li>
+    <li>The Finder: file names, and where you are in the list.</li>
+    <li>Playback: the name of the file being played, and the file info pages (date and time, format, length).</li>
+    <li>The Versions screen.</li>
+    <li>The user defined name editor: every key as you move, each character you type or delete, and the whole name when you reach OK.</li>
+    <li>On the home screen, while not recording or playing, pressing stop tells you the remaining recording time, the battery level, and the name the next recording will get (so you can check it before pressing record).</li>
+    <li>During playback, after you fast forward or rewind (holding the enter or back button), it tells you how much time is left in the file.</li>
+  </ul>
+  <p class="hint">It speaks in the language the F3 is set to: English, French, German, Italian, Spanish, Chinese or Japanese. The voice is heard only through the headphones, never in your recordings. <a href="https://xogium.github.io/talking-f3/Zoom_menu.html">The F3 guide</a> explains each of these, and the few screens that do not talk.</p>
+</section>
+
 <section class="step" aria-labelledby="h-file">
   <h2 id="h-file"><span class="n">1.</span>Choose Zoom's firmware file</h2>
   <div class="field">
@@ -165,6 +184,18 @@ footer p { max-width: none; }
     <li>When it is finished, switch the F3 off and on again. After a moment you hear the chime, and the F3 speaks as you use it.</li>
   </ol>
   <p class="hint"><strong>To go back to the normal firmware:</strong> do the same steps with Zoom's original F3SYSTEM.BIN version 2.20. The patch never touches the F3's startup code, so this always works.</p>
+</section>
+
+<section class="step" aria-labelledby="h-docs">
+  <h2 id="h-docs">Documentation</h2>
+  <ul>
+    <li><a href="https://xogium.github.io/talking-f3/Zoom_menu.html">The F3 guide for blind users</a>: the buttons, every menu, and how to use the talking F3.</li>
+    <li><a href="https://xogium.github.io/talking-f3/TECHNICAL.html">How the talking F3 works</a>: the design in depth, and how to build it from source.</li>
+    <li><a href="https://xogium.github.io/talking-f3/METHOD.html">How it was made</a>: the method step by step, to make another device talk.</li>
+    <li><a href="https://xogium.github.io/talking-f3/HOW_TO_DECOMPILE.html">How to decompile the F3 firmware</a>.</li>
+    <li><a href="https://xogium.github.io/talking-f3/EMULATION.html">Testing in an emulator</a>.</li>
+    <li><a href="https://xogium.github.io/talking-f3/RE_REFERENCE.html">Firmware reference</a>: every address and structure used.</li>
+  </ul>
 </section>
 
 <footer>

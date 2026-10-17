@@ -5,13 +5,18 @@
 
 A spoken voice guide for the **Zoom F3** field recorder, made by patching its firmware, for
 blind and low-vision users. Through the headphones, the F3 says what is on its screen:
-- menus as you scroll, and the selected option;
-- popups and confirmation dialogs;
-- the Date/Time screen and the waveform magnification;
-- file names in the Finder and Playback, and file info;
-- firmware versions;
-- the user defined name editor;
-- on request (Stop on the home screen), the remaining recording time and battery.
+- The menus as you move through them, and which option is currently selected in check box menus.
+- Language names in the Language menu, each in its own language.
+- Popups such as VOLUME, Hold, No SD Card and so on, including values that change while the popup is shown.
+- Execute/cancel and OK/cancel dialogs, with the option you are on.
+- The waveform magnification popup.
+- The Set Date/Time screen: which field you are on, its value, and when you start or finish editing it. Setting the date and time no longer needs sighted help or the bluetooth app.
+- The Finder: file names, and where you are in the list.
+- Playback: the name of the file being played, and the file info pages (date and time, format, length).
+- The Versions screen.
+- The user defined name editor: every key as you move, each character you type or delete, and the whole name when you reach OK.
+- On the home screen, while not recording or playing, pressing stop tells you the remaining recording time, the battery level, and the name the next recording will get (so you can check it before pressing record).
+- During playback, after you fast forward or rewind (holding the enter or back button), it tells you how much time is left in the file.
 
 It speaks in the language the F3 is set to: English, French, German, Italian, Spanish,
 Chinese or Japanese.
