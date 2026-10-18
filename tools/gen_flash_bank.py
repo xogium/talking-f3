@@ -184,17 +184,18 @@ KEYBOARD_SLOTS = list(range(800, 810)) + list(range(810, 830)) + [830]
 # 831 "seconds" (playback: time left after fast-forward / rewind), 832 "next file" (the Stop
 # status: the name the next recording will get). 833..837: the value screen (HP Alert Vol,
 # Line Out Level and Delay, Contrast, Input HPF and Delay): "minus" and the units, so that
-# "-20dBFS" is read "minus 20 decibels full scale" rather than spelled.
+# "-20dBFS" is read "minus 20 decibels full scale" rather than spelled. 838 / 839: speech back on /
+# off (holding Stop switches the voice off and on), the firmware's only jokes, in Casey's words.
 STATUS2 = {
- "EN": ["seconds", "next file", "minus", "decibels", "decibels full scale", "milliseconds", "hertz"],
- "FR": ["secondes", "prochain fichier", "moins", "décibels", "décibels pleine échelle", "millisecondes", "hertz"],
- "DE": ["Sekunden", "nächste Datei", "minus", "Dezibel", "Dezibel Full Scale", "Millisekunden", "Hertz"],
- "IT": ["secondi", "prossimo file", "meno", "decibel", "decibel fondo scala", "millisecondi", "hertz"],
- "ES": ["segundos", "próximo archivo", "menos", "decibelios", "decibelios a escala completa", "milisegundos", "hercios"],
- "L5": ["秒", "下一个文件", "负", "分贝", "分贝满刻度", "毫秒", "赫兹"],
- "L6": ["びょう", "つぎの ファイル", "マイナス", "デシベル", "デシベル フルスケール", "ミリびょう", "ヘルツ"],
+ "EN": ["seconds", "next file", "minus", "decibels", "decibels full scale", "milliseconds", "hertz", "I can talk now, wow!", "Okay, I'm shutting up."],
+ "FR": ["secondes", "prochain fichier", "moins", "décibels", "décibels pleine échelle", "millisecondes", "hertz", "Je peux parler, waouh !", "D'accord, je me tais."],
+ "DE": ["Sekunden", "nächste Datei", "minus", "Dezibel", "Dezibel Full Scale", "Millisekunden", "Hertz", "Ich darf wieder reden, wow!", "Okay, ich halte den Mund."],
+ "IT": ["secondi", "prossimo file", "meno", "decibel", "decibel fondo scala", "millisecondi", "hertz", "Posso parlare, wow!", "Va bene, smetto di parlare."],
+ "ES": ["segundos", "próximo archivo", "menos", "decibelios", "decibelios a escala completa", "milisegundos", "hercios", "¡Ya puedo hablar, guau!", "Vale, me callo."],
+ "L5": ["秒", "下一个文件", "负", "分贝", "分贝满刻度", "毫秒", "赫兹", "我能说话了，哇！", "好的，我闭嘴。"],
+ "L6": ["びょう", "つぎの ファイル", "マイナス", "デシベル", "デシベル フルスケール", "ミリびょう", "ヘルツ", "しゃべれる よ、わあ！", "わかった、だまります。"],
 }
-STATUS2_SLOTS = [831, 832, 833, 834, 835, 836, 837]
+STATUS2_SLOTS = [831, 832, 833, 834, 835, 836, 837, 838, 839]
 
 # Units and technical words espeak would spell out ("k h z", "b i t"): replaced by the
 # spoken word in each language before synthesis. Display text (and so the runtime-text

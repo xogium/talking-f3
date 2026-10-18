@@ -358,7 +358,9 @@ static uint16_t g_sq[SQ_N];
 static uint32_t g_sq_n;
 static void say_clear(void){ g_sq_n = 0; }
 static void say_add(uint32_t id){ if (clip_ok(id) && g_sq_n < SQ_N) g_sq[g_sq_n++] = (uint16_t)id; }
+static uint32_t g_mute;                        /* speech switched off (Stop held); RAM only */
 static void say_go(void){                      /* start the first queued clip now */
+    if (g_mute){ g_sq_n = 0; return; }          /* off: screens are still followed, nothing said */
     if (!g_sq_n) return;
     uint32_t id = g_sq[0];
     for (uint32_t i = 1; i < g_sq_n; i++) g_sq[i-1] = g_sq[i];
@@ -706,6 +708,8 @@ static uint32_t g_zm_last;                     /* (open<<8)|idx last spoken */
 #define REC_NEXT_TAKE (*(volatile int16_t*)0x804BEBA8u)
 #define CLIP_NEXT_FILE 832u
 #define CLIP_SECONDS   831u
+#define CLIP_SPEECH_ON  838u
+#define CLIP_SPEECH_OFF 839u
 static int next_rec_name(uint16_t *out, uint32_t cap){
     uint32_t m = REC_NAME_MODE;
     const volatile uint16_t *b = (m == 1u) ? REC_USER_NAME : (m == 0u ? REC_DATE_BASE : 0);
@@ -1071,6 +1075,11 @@ int voice_fill_half(int32_t *b2, int32_t *dma){
  * magnification, Playback, file INFO, Finder, Versions, dialogs, Date/Time, menu tree,
  * then the widget-4 fallback. Each screen is read only while it is current AND its
  * init+draw flag is set (scr_ready), and runtime values must be stable for one poll. */
+static void speech_toggle(void){
+    say_clear();
+    if (g_mute){ g_mute = 0; voice_start(CLIP_SPEECH_ON); }
+    else { voice_start(CLIP_SPEECH_OFF); g_mute = 1; }  /* this last phrase still plays */
+}
 void voice_poll(void){
 #if SCR_PROBE
     { static uint32_t last; uint32_t sc = SCR_CUR;
@@ -1088,12 +1097,22 @@ void voice_poll(void){
     int ok = mt_read(&node, &sel, &sid, &title, &chk);
     uint32_t wid = focused_string_id();
     uint32_t pu  = pu_read();
-    {   /* Stop on the idle home screen (not recording, not playing) */
-        static uint32_t prev_dn;
+    {   /* Stop. A short press on the idle home screen (not recording, not playing) says the
+         * status, on release. Held about a second, anywhere, it switches the speech off or on
+         * ("speech off" is said, then nothing until it is held again; power-up = on). Zoom's own
+         * Stop action happens at the press as always (Playback stops, a recording stops); on the
+         * home screen when idle and in the menus Stop does nothing else. */
+        static uint32_t prev_dn, held, toggled, idle_at_press;
         uint32_t dn = (~(*(volatile uint32_t*)0x80490BACu) >> STATUS_KEY_BIT) & 1u;
-        if (dn && !prev_dn && SCR_CUR == SCR_HOME && *(volatile int16_t*)0x80301676u == 0
-            && *(volatile uint32_t*)0x803016A8u == 0u) g_status_req = 1u;
-        prev_dn = dn;
+        uint32_t was = prev_dn; prev_dn = dn;
+        if (dn && !was){                                /* pressed */
+            held = 0; toggled = 0;
+            idle_at_press = SCR_CUR == SCR_HOME && *(volatile int16_t*)0x80301676u == 0
+                            && *(volatile uint32_t*)0x803016A8u == 0u;
+        } else if (dn){                                 /* still down */
+            uint32_t need = ticks_per_s() / (MT_THROTTLE + 1u);      /* polls in ~1 s */
+            if (!toggled && ++held >= need){ toggled = 1; speech_toggle(); return; }
+        } else if (was && !toggled && idle_at_press) g_status_req = 1u;   /* released early */
     }
     if (g_status_req){                                  /* on-demand home status */
         g_status_req = 0;
