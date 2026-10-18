@@ -527,10 +527,17 @@ static void say_text(const volatile uint16_t *p){
         i++;
     }
 }
-/* speak a UI string: runtime text if the firmware rewrote it, else its clip */
+/* speak a UI string: its live text if the firmware rewrote it or if it has no clip (the
+ * placeholders listed in RUNTIME_ONLY, same list as tools/gen_flash_bank.py), else its clip */
+static void say_value(const volatile uint16_t *p);
+static const uint16_t RUNTIME_ONLY[] = { 136, 158, 243, 255, 256, 257, 258, 259, 260, 265, 329 };
+static int runtime_only(uint32_t sid){
+    for (uint32_t i = 0; i < sizeof RUNTIME_ONLY / sizeof RUNTIME_ONLY[0]; i++) if (RUNTIME_ONLY[i] == sid) return 1;
+    return 0;
+}
 static void say_sid(uint32_t sid){
-    if (str_dynamic(sid)){ const volatile uint16_t *p = str_ptr(sid); if (p) say_text(p); }
-    else say_add(sid);
+    if (str_dynamic(sid) || runtime_only(sid)){ const volatile uint16_t *p = str_ptr(sid); if (p) say_value(p); }
+    else say_add(sid);                              /* (no clip: a line meant to stay silent) */
 }
 
 /* ----- popups (warnings / status messages) -----
@@ -854,6 +861,90 @@ static void ne_poll(void){
 }
 
 /* Returns 1 and fills node/sel/sid/title/chk if the menu state is valid. */
+/* ----- value screen (screen object 10 @0x8020754C) -----
+ * One screen edits a single value for six settings; the menu item's handler (e.g.
+ * 0x8002dba8 for HP Alert Vol) stores the mode in u8 @0x804C0589 and opens it:
+ *   1 HP Alert Vol "-20dBFS"   2 Line Out Level "-1dB" / "+24dB" / Mute   3 Line Out Delay "0ms"
+ *   4 Contrast "10"            5 Input HPF "240Hz" / Off                   6 Input Delay "30.0ms"
+ * Title sid per mode: u16 table @0x80166F56. The value is runtime text that the draw code
+ * (FUN_800209c8 case 8, e.g. FUN_8005c3b8) writes into the string of widget 0x25
+ * (FUN_80024d88 -> FUN_800274a0): the string id stays the same, only its text changes, so
+ * the generic widget follow never noticed. Widget 0x26 shows ": Tone On" / ": Tone Off"
+ * (case 10, Line Out Level's test tone). */
+#define SCR_VAL      0x8020754Cu
+#define VAL_MODE     (*(volatile uint8_t*)0x804C0589u)
+#define VAL_TITLES   0x80166F56u
+#define VAL_W        0x25u
+#define VAL_TONE_W   0x26u
+#define CLIP_MINUS   833u
+#define CLIP_DB      834u
+#define CLIP_DBFS    835u
+#define CLIP_MS      836u
+#define CLIP_HZ      837u
+static uint32_t g_val_h, g_tone_h;
+static int is_dig(uint32_t c){ return c >= '0' && c <= '9'; }
+static int unit_eq(const volatile uint16_t *p, const char *u){
+    uint32_t i = 0;
+    for (; u[i]; i++) if (p[i] != (uint16_t)(uint8_t)u[i]) return 0;
+    return p[i] == 0;
+}
+/* "-20dBFS" -> minus 20 decibels full scale; "+24dB" -> 24 decibels; "30.5ms" -> 30 point 5
+ * milliseconds (".0" not said); anything else ("Mute", "Off", "Désactivé", a plain "10" or
+ * "2026", "44.1kHz") as say_text reads it. */
+#define CLIP_MUTE    251u                /* "Mute", in the F3's language */
+#define CLIP_OFF     245u                /* "Off" */
+static void say_value(const volatile uint16_t *p){
+    /* The value screen writes these in English whatever the language (Line Out Level at the
+     * bottom: "Mute", FUN_8005c458; HP Alert Vol and Input HPF at the bottom: "Off",
+     * FUN_8005c338 / FUN_8005c2a8): say the F3's own word for them. */
+    if (unit_eq(p, "Mute")){ say_add(CLIP_MUTE); return; }
+    if (unit_eq(p, "Off")) { say_add(CLIP_OFF);  return; }
+    uint32_t i = 0, neg = 0;
+    if (p[0] == '-' || p[0] == 0x2212u){ neg = 1; i = 1; }
+    else if (p[0] == '+' || p[0] == 0xB1u) i = 1;            /* "±0dB": Line Out Level at 0 */
+    if (!is_dig(p[i])){ say_text(p); return; }
+    uint32_t v = 0, n = 0, frac = 0;
+    while (is_dig(p[i]) && n < 4u){ v = v*10u + (p[i] - '0'); i++; n++; }
+    if (is_dig(p[i])){ say_text(p); return; }
+    if (p[i] == '.' && is_dig(p[i+1])){ frac = 1u + (p[i+1] - '0'); i += 2; if (is_dig(p[i])){ say_text(p); return; } }
+    const volatile uint16_t *u = p + i;
+    uint32_t unit;
+    if (!u[0]) unit = 0;
+    else if (unit_eq(u, "dBFS")) unit = CLIP_DBFS;
+    else if (unit_eq(u, "dB"))   unit = CLIP_DB;
+    else if (unit_eq(u, "ms"))   unit = CLIP_MS;
+    else if (unit_eq(u, "Hz"))   unit = CLIP_HZ;
+    else { say_text(p); return; }
+    if (!unit && i == 0u){ say_text(p); return; }   /* plain number: years etc. */
+    if (neg && (v || frac > 1u)) say_add(CLIP_MINUS);
+    say_int(v);
+    if (frac > 1u){ say_add(CLIP_POINT); say_add(CLIP_NUM(frac - 1u)); }
+    if (unit) say_add(unit);
+}
+static uint32_t val_hash(uint32_t w, const volatile uint16_t **pp){
+    uint32_t sd = wsid(w);
+    const volatile uint16_t *p = sd ? str_ptr(sd) : 0;
+    if (pp) *pp = p;
+    return p ? sd*31u + str_hash(p) : 0u;
+}
+static void val_poll(void){
+    uint32_t m = VAL_MODE;
+    if (m < 1u || m > 6u) return;
+    const volatile uint16_t *p, *tp;
+    uint32_t h = val_hash(VAL_W, &p), th = val_hash(VAL_TONE_W, &tp);
+    if (!p) return;
+    if (g_scr_last != SCR_VAL){                       /* just opened: title and value */
+        g_scr_last = SCR_VAL; g_val_h = h; g_tone_h = th; g_last_id = focused_string_id();
+        say_clear(); say_add(*(volatile uint16_t*)(VAL_TITLES + m*2u)); say_value(p); say_go();
+        return;
+    }
+    if (th != g_tone_h){                              /* test tone switched on / off */
+        g_tone_h = th;
+        if (tp && tp[0]){ say_clear(); say_text(tp); say_go(); return; }
+    }
+    if (h != g_val_h){ g_val_h = h; say_clear(); say_value(p); say_go(); }
+}
+
 static int mt_read(uint32_t *node_o, uint32_t *sel_o, uint32_t *sid_o, uint32_t *title_o, uint32_t *chk_o){
     uint32_t L = *(volatile uint8_t*)MT_STATE;
     if (L >= 7u) return 0;
@@ -1167,6 +1258,8 @@ void voice_poll(void){
     }
     /* ---- name editor (Rec File Name > User Defined Name) ---- */
     if (scr_ready(SCR_NAME)){ ne_poll(); return; }
+    /* ---- value screen: HP Alert Vol, Line Out Level / Delay, Contrast, Input HPF / Delay ---- */
+    if (scr_ready(SCR_VAL)){ val_poll(); return; }
     /* ---- dialog screen ---- */
     if (scr_ready(SCR_DLG)){
         uint32_t t = DLG_TYPE, b = DLG_BTN ? 1u : 0u;

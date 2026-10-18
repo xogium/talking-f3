@@ -182,17 +182,19 @@ KEYBOARD = {
 KEYBOARD_SLOTS = list(range(800, 810)) + list(range(810, 830)) + [830]
 
 # 831 "seconds" (playback: time left after fast-forward / rewind), 832 "next file" (the Stop
-# status: the name the next recording will get)
+# status: the name the next recording will get). 833..837: the value screen (HP Alert Vol,
+# Line Out Level and Delay, Contrast, Input HPF and Delay): "minus" and the units, so that
+# "-20dBFS" is read "minus 20 decibels full scale" rather than spelled.
 STATUS2 = {
- "EN": ["seconds", "next file"],
- "FR": ["secondes", "prochain fichier"],
- "DE": ["Sekunden", "nächste Datei"],
- "IT": ["secondi", "prossimo file"],
- "ES": ["segundos", "próximo archivo"],
- "L5": ["秒", "下一个文件"],
- "L6": ["びょう", "つぎの ファイル"],
+ "EN": ["seconds", "next file", "minus", "decibels", "decibels full scale", "milliseconds", "hertz"],
+ "FR": ["secondes", "prochain fichier", "moins", "décibels", "décibels pleine échelle", "millisecondes", "hertz"],
+ "DE": ["Sekunden", "nächste Datei", "minus", "Dezibel", "Dezibel Full Scale", "Millisekunden", "Hertz"],
+ "IT": ["secondi", "prossimo file", "meno", "decibel", "decibel fondo scala", "millisecondi", "hertz"],
+ "ES": ["segundos", "próximo archivo", "menos", "decibelios", "decibelios a escala completa", "milisegundos", "hercios"],
+ "L5": ["秒", "下一个文件", "负", "分贝", "分贝满刻度", "毫秒", "赫兹"],
+ "L6": ["びょう", "つぎの ファイル", "マイナス", "デシベル", "デシベル フルスケール", "ミリびょう", "ヘルツ"],
 }
-STATUS2_SLOTS = [831, 832]
+STATUS2_SLOTS = [831, 832, 833, 834, 835, 836, 837]
 
 # Units and technical words espeak would spell out ("k h z", "b i t"): replaced by the
 # spoken word in each language before synthesis. Display text (and so the runtime-text
@@ -275,6 +277,13 @@ def fnv32(t):
     return h or 1
 
 STRINGS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "F3_strings_all_langs.json")
+# Placeholder strings the firmware always overwrites with live text before showing them
+# ("Estimate:***h**m", "Mark xx/xx", "999 h 59 m", the value screen's "-48dBFS" / "-48dB" /
+# "400ms" / "240Hz" / "30.0ms", "99.9GB"...). Their built-in text is never heard, so they get
+# no clip: the engine reads the live text of any string that has none (say_sid). Saves
+# about 30 KB per language.
+RUNTIME_ONLY = {136, 158, 243, 255, 256, 257, 258, 259, 260, 265, 329}
+
 def bank_plan(lang, strings=STRINGS):
     """Everything about a language's bank that does not depend on the voice settings:
     which slots exist, the unique clips with their espeak segments, the two hash tables and
@@ -308,7 +317,7 @@ def bank_plan(lang, strings=STRINGS):
         text = tbl[str(sid)]
         slang = next((k for k, v in LANG_NAME_SID.items() if v == sid), lang)  # language names: own voice
         spoken = SPOKEN.get(slang, {}).get(sid, text)
-        if spoken is None: continue                                  # silent line
+        if spoken is None or sid in RUNTIME_ONLY: continue           # silent line / no clip needed
         spoken = times_spoken(spoken, slang)
         key = "chime" if sid == CHIME_ID else (slang, spoken)
         if key not in keys:

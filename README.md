@@ -14,6 +14,7 @@ blind and low-vision users. Through the headphones, the F3 says what is on its s
 - The Finder: file names, and where you are in the list.
 - Playback: the name of the file being played, and the file info pages (date and time, format, length).
 - The Versions screen.
+- Settings that take a value: hp alert vol, line out level (and its test tone), line out delay, contrast, and each input's hpf and delay. You hear the setting and its value when it opens, then each new value as you press up or down.
 - The user defined name editor: every key as you move, each character you type or delete, and the whole name when you reach OK.
 - On the home screen, while not recording or playing, pressing stop tells you the remaining recording time, the battery level, and the name the next recording will get (so you can check it before pressing record).
 - During playback, after you fast forward or rewind (holding the enter or back button), it tells you how much time is left in the file.

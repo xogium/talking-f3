@@ -113,6 +113,17 @@ checked value, +0x14 s16 top visible row.
 | 0x804C02A8 / 0x804C02AE | cursor position in the 13-character window / window scroll; cursor index = sum |
 | 0x804C058E | editor mode u8 (2 = user defined name; 0 and 1 unused stubs in the F3) |
 
+## Value screen (HP Alert Vol, Line Out Level / Delay, Contrast, Input HPF / Delay)
+
+| Address | What |
+|---|---|
+| 0x8020754C | screen object 10; draw FUN_800209c8 (case 4 title, case 6 value widget, case 8 value text, case 10 test tone) |
+| 0x804C0589 | mode u8, set by the menu item's handler before opening (e.g. 0x8002dba8): 1 HP Alert Vol, 2 Line Out Level, 3 Line Out Delay, 4 Contrast, 5 Input HPF, 6 Input Delay |
+| 0x80166F56 + mode*2 | title string id per mode (39, 40, 42, 63, 9, 11) |
+| 0x80166F48 + mode*2 | value placeholder string id per mode (257 "-48dBFS", 256 "-48dB", 255 "400ms", 64 "10", 260 "240Hz", 329 "30.0ms") |
+| widget 0x25 | the value: live text written into the placeholder's string (FUN_80024d88 -> FUN_800274a0), e.g. "-20dBFS", "+24dB", "±0dB". At the bottom of the range the F3 writes English words in every language: "Mute" (Line Out Level, FUN_8005c458), "Off" (HP Alert Vol FUN_8005c338, Input HPF FUN_8005c2a8); the engine says strings 251 / 245 instead |
+| widget 0x26 | Line Out Level test tone, ": Tone On" / ": Tone Off" |
+
 ## Recording names and playback position
 
 | Address | What |

@@ -21,6 +21,7 @@ The rest of this guide is left as it was written in 2022. It is still for you if
 * The Finder: file names, and where you are in the list.
 * Playback: the name of the file being played, and the file info pages (date and time, format, length).
 * The Versions screen.
+* Settings that take a value: hp alert vol, line out level (and its test tone), line out delay, contrast, and each input's hpf and delay. You hear the setting and its value when it opens, then each new value as you press up or down.
 * The user defined name editor: every key as you move, each character you type or delete, and the whole name when you reach OK.
 * On the home screen, while not recording or playing, pressing stop tells you the remaining recording time, the battery level, and the name the next recording will get (so you can check it before pressing record).
 * During playback, after you fast forward or rewind (holding the enter or back button), it tells you how much time is left in the file.
@@ -157,6 +158,7 @@ Hold the recorder so that the row of 4 buttons is closest to you, right below th
 		* elapsed time
 		* remaining time
 * output
+	* **Talking F3:** hp alert vol, line out level and line out delay talk: the setting's name and its value when the screen opens, then the new value at each press ("minus 20 decibels full scale", "mute", "12 milliseconds"). On line out level, switching the test tone on or off with play/pause is spoken too.
 	* hp alert vol
 		* -20dbFS , up = increments towards 0, down = decrements, steps of 1
 	* line out level
@@ -229,6 +231,7 @@ Hold the recorder so that the row of 4 buttons is closest to you, right below th
 			* 1 min
 		* contrast
 			* ranges from 1 to 10, default is 5. Does not wrap around
+			* **Talking F3:** the value is spoken at each press.
 	* power
 		* battery type (check box menu)
 			* alcaline
@@ -273,12 +276,14 @@ The following settings apply to the inputs and can be accessed with their respec
 	* 48v
 * hpf (does not wrap around)
 	* from off to 240 hz, increments in steps of 10 hz
+	* **Talking F3:** the value is spoken at each press.
 * invert phase (check box menu)
 	* off
 	* on
 * delay ( does not wrap around)
 	* 0.0 ms default
 	* increments of 0.1 ms
+	* **Talking F3:** the value is spoken at each press.
 
 ## How to connect the recorder in file transfer mode ##
 If you wish to access the micro sd card directly from the zoom, connect an usb type C to usb type A cable or usb-C to usb-C cable to your computer, then do the following:
