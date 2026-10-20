@@ -155,6 +155,11 @@ footer p { max-width: none; }
     <p id="sizeEst" role="status" aria-live="polite"></p>
   </div>
   <div class="check field">
+    <input type="checkbox" id="switchStart" aria-describedby="switchHint">
+    <label for="switchStart">Record switch only starts recordings: only Stop ends a recording (off by default)</label>
+    <p class="hint" id="switchHint">Why: the record switch also has the Hold position. When you slide it out of Hold during a recording, it is easy to push it a little too far, onto record, and Zoom's firmware then stops the recording; pushing it again starts a new one. With this option, the switch still starts a recording when the F3 is idle, but does nothing while a recording is running, so a recording only ends when you press Stop. Leave it off to keep Zoom's usual behaviour. This is the only option that changes how the F3 itself behaves: two small changes in Zoom's own code, checked like everything else.</p>
+  </div>
+  <div class="check field">
     <input type="checkbox" id="chime" checked>
     <label for="chime">Play a short chime when the F3 has started and the voice is ready</label>
   </div>
@@ -202,7 +207,7 @@ footer p { max-width: none; }
 </section>
 
 <footer>
-  <p>Talking F3 is an independent accessibility project, not made or supported by Zoom. It changes only the main firmware area, never the boot area, and checks every file before offering it. Voices: eSpeak NG (GPL-3.0) with libsonic (Apache-2.0); audio coding: Opus (BSD). Source code, technical notes and the F3 guide for blind users: <a href="https://github.com/xogium/talking-f3">github.com/xogium/talking-f3</a>.</p>
+  <p>Talking F3 is an independent accessibility project, not made or supported by Zoom. It changes only the main firmware area (the voice, and optionally the record switch), never the boot area, and checks every file before offering it. Voices: eSpeak NG (GPL-3.0) with libsonic (Apache-2.0); audio coding: Opus (BSD). Source code, technical notes and the F3 guide for blind users: <a href="https://github.com/xogium/talking-f3">github.com/xogium/talking-f3</a>.</p>
 </footer>
 </main>
 
@@ -242,7 +247,7 @@ function settings() {
   for (const l of DATA.langs) { const v = parseInt($("rate_" + l.key).value, 10); if (v >= 80 && v <= 1000) rates[l.key] = v; }
   return { variant: $("variant").value, pitch: +$("pitch").value, rate: +$("rate").value, rates,
            langs: DATA.langs.filter(l => $("lang_" + l.key).checked).map(l => l.key),
-           level: +$("level").value, chime: $("chime").checked, kbps: +$("quality").value };
+           level: +$("level").value, chime: $("chime").checked, switchStartOnly: $("switchStart").checked, kbps: +$("quality").value };
 }
 /* live size estimate: announced politely, only when its wording changes */
 let lastEst = "";

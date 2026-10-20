@@ -21,7 +21,8 @@ function readTree(dir, base = "") {
   const stock = new Uint8Array(fs.readFileSync(process.argv[2]));
   console.log("stock check:", await P.checkStock(data, stock) || "OK");
   const settings = Object.assign({}, data.defaults, { langs: (process.argv[4] || "EN,FR,DE,IT,ES,L5,L6").split(","), rates: {},
-                                                    kbps: +(process.argv[5] || data.defaults.kbps) });
+                                                    kbps: +(process.argv[5] || data.defaults.kbps),
+                                                    switchStartOnly: process.argv[6] === "switch" || data.defaults.switchStartOnly });
   console.log("quality", P.quality(settings.kbps).name, "| estimate", (P.estimateSize(data, settings) / 1048576).toFixed(2), "MB");
   const t0 = Date.now();
   const banks = await P.buildBanks(data, settings, espeak, opus, (d, t, n) => { if (d % 500 === 0 || d === t) console.log(`  ${d}/${t} ${n}`); });

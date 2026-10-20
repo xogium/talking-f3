@@ -291,6 +291,10 @@ const IMG = { SIZE: 0x7FA300, CODE_START: 0x200300, CKSUM: 0x2002FC, LEN: 0x7FA2
   BOOT_END: 0x200200, HOOK_RT: 0x80010F3E, HOOK_FILE: 0x21123E, HOOK_ORIG: [0xa4, 0xf1, 0x40, 0x01],
   MODULE_FILE: 0x3C0000, GAP_END_RT: 0x801F4400, BANK_FILE: 0x400000, TRAILER: 0x7F9000 /* below the calibration sector at 0x7FA000 */, CFG_MAGIC: 0x47464356 };
 const rt2file = (a) => a - 0x80000000 + IMG.CODE_START;
+/* Optional: the record switch only starts recordings; Stop ends them (tools/build_flash_image.py
+ * SWITCH_PATCHES): [runtime address, stock bytes, new bytes] */
+const SWITCH_PATCHES = [[0x8003EC90, [0xc7, 0xf7, 0x76, 0xf9], [0x8d, 0xe0, 0x00, 0xbf]],
+                        [0x8002E21E, [0x6f, 0xf0, 0x01, 0x00], [0x06, 0xe0, 0x00, 0xbf]]];
 
 /* Thumb-2 B.W (encoding T4), same as arm/thumb_branch.py */
 function thumbBW(src, dst) {
@@ -379,6 +383,11 @@ function buildImage(data, stock, banks, settings) {
   const img = new Uint8Array(stock), v = new DataView(img.buffer), m = data.module, mod = b64(m.bin);
   if (!IMG.HOOK_ORIG.every((b, i) => img[IMG.HOOK_FILE + i] === b)) throw new Error("hook site not as expected");
   img.set(thumbBW(IMG.HOOK_RT, m.tramp), IMG.HOOK_FILE);
+  if (settings.switchStartOnly) for (const [rt, old, nw] of SWITCH_PATCHES) {
+    const f = rt2file(rt);
+    if (!old.every((b, i) => img[f + i] === b)) throw new Error("record switch site not as expected");
+    img.set(nw, f);
+  }
   if (m.end_rt > IMG.GAP_END_RT) throw new Error("module too large");
   const modEnd = Math.min((rt2file(m.end_rt) + 0xFFF) & ~0xFFF, rt2file(IMG.GAP_END_RT));
   img.fill(0, IMG.MODULE_FILE, modEnd); img.set(mod, IMG.MODULE_FILE);
@@ -391,17 +400,22 @@ function buildImage(data, stock, banks, settings) {
   img.set([48, 50, 50, 49], IMG.VER);                                     // "0221"
   let sum = 0; for (let i = IMG.CODE_START; i < img.length; i++) sum = (sum + img[i]) >>> 0;
   v.setUint32(IMG.CKSUM, sum, false);
-  verifyImage(stock, img);
+  verifyImage(stock, img, !!settings.switchStartOnly);
   return img;
 }
 
-function verifyImage(stock, img) {
+function verifyImage(stock, img, switchStartOnly = false) {
   if (img.length !== stock.length) throw new Error("size changed");
   for (let i = 0; i < IMG.BOOT_END; i++) if (img[i] !== stock[i]) throw new Error("BOOT region changed");
   let sum = 0; for (let i = IMG.CODE_START; i < img.length; i++) sum = (sum + img[i]) >>> 0;
   if (new DataView(img.buffer).getUint32(IMG.CKSUM, false) !== sum) throw new Error("checksum mismatch");
   const allowed = [[IMG.CKSUM, IMG.CKSUM + 4], [IMG.HOOK_FILE, IMG.HOOK_FILE + 4], [IMG.MODULE_FILE, rt2file(IMG.GAP_END_RT)],
                    [IMG.BANK_FILE, IMG.TRAILER], [IMG.LEN, IMG.LEN + 8]];
+  for (const [rt, old, nw] of SWITCH_PATCHES) {        // exactly the known bytes, or untouched
+    const f = rt2file(rt), want = switchStartOnly ? nw : old;
+    if (!want.every((b, i) => img[f + i] === b)) throw new Error("record switch site changed unexpectedly");
+    allowed.push([f, f + 4]);
+  }
   for (let i = 0; i < img.length; i++)
     if (img[i] !== stock[i] && !allowed.some(([a, b]) => i >= a && i < b)) throw new Error("unexpected change at 0x" + i.toString(16));
   for (let i = 0x211242; i < 0x211282; i++) if (img[i] !== stock[i]) throw new Error("audio loop changed");

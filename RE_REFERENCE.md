@@ -124,6 +124,16 @@ checked value, +0x14 s16 top visible row.
 | widget 0x25 | the value: live text written into the placeholder's string (FUN_80024d88 -> FUN_800274a0), e.g. "-20dBFS", "+24dB", "±0dB". At the bottom of the range the F3 writes English words in every language: "Mute" (Line Out Level, FUN_8005c458), "Off" (HP Alert Vol FUN_8005c338, Input HPF FUN_8005c2a8); the engine says strings 251 / 245 instead |
 | widget 0x26 | Line Out Level test tone, ": Tone On" / ": Tone Off" |
 
+## Record switch
+
+| Address | What |
+|---|---|
+| bit 4 of 0x80490BAC | record switch (handler slot 2) |
+| FUN_8003eb78 case 3 | home / recording screen: idle -> FUN_8003f330 (start); recording -> FUN_80005f80 (stop) at 0x8003EC90 (`c7f776f9`) |
+| FUN_8002e208 | the switch on the other screens: idle -> start and go home; recording -> FUN_8002eb70 (stop), branch at 0x8002E21E (`6ff00100`) |
+| FUN_8002eb70 | stop (Stop button, slot 4): record state 1 -> FUN_80005f80; 2-3 -> playback stop; then home |
+| option "switch starts only" | 0x8003EC90 -> `8de000bf` (b 0x8003edae, return 0); 0x8002E21E -> `06e000bf` (b 0x8002e22e, return) |
+
 ## Recording names and playback position
 
 | Address | What |

@@ -38,6 +38,7 @@ The patcher asks for Zoom's official F3 firmware, version 2.20: download [F3_v2.
 * the voice variant, its pitch and its speed (up to 1000 words per minute), with a different speed per language if you wish,
 * the sound quality: higher quality sounds clearer but takes more room. The F3 has room for about 4 MB of voices, enough for all seven languages at the standard quality; with a single language you can choose the highest quality. The patcher shows an estimate of the size as you change the settings,
 * how loud the voice is,
+* whether the record switch only starts recordings, so that only stop ends a recording (off by default: the switch also stops recordings, as in Zoom's firmware),
 * whether to play the start-up chime.
 
 A "Listen to a sample" button lets you try your settings before building. Building takes about a minute and produces a new F3SYSTEM.BIN.
@@ -90,6 +91,7 @@ Hold the recorder so that the row of 4 buttons is closest to you, right below th
 
 ### right side ###
 * record / stop record / hold switch
+	* **Talking F3:** pushing the switch again during a recording normally stops it, and it is easy to do by accident when sliding the switch out of hold. The patcher has an option, off by default, that makes the switch only start recordings: during a recording it does nothing, and only the stop button ends the recording.
 * bluetooth dongle connector, covered
 * power button
 

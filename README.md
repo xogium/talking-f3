@@ -24,6 +24,10 @@ blind and low-vision users. Through the headphones, the F3 says what is on its s
 It speaks in the language the F3 is set to: English, French, German, Italian, Spanish,
 Chinese or Japanese.
 
+One option changes how the F3 itself behaves (off by default): the record switch only starts
+a recording, and only Stop ends it, so sliding the switch out of Hold can't stop a recording
+by accident.
+
 ## Get it
 
 **Use the patcher: <https://xogium.github.io/talking-f3/>**

@@ -55,7 +55,7 @@ def main():
     data = {"format": 1, "stock": {"size": len(stock), "sha256": hashlib.sha256(stock).hexdigest(),
                                    "version": "2.20"},
             "module": module, "chime": chime, "langs": langs,
-            "defaults": {"variant": "michel", "pitch": 50, "rate": 300, "level": 13, "chime": True, "kbps": 16}}
+            "defaults": {"variant": "michel", "pitch": 50, "rate": 300, "level": 13, "chime": True, "switchStartOnly": False, "kbps": 16}}
     os.makedirs(os.path.join(HERE, "build"), exist_ok=True)
     out = os.path.join(HERE, "build", "data.json")
     json.dump(data, open(out, "w"), ensure_ascii=False, separators=(",", ":"))
