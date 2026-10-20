@@ -179,6 +179,7 @@ All are in `tools/emu/` and run from the project root.
 |---|---|---|
 | `example_status.py` | Stop on the home screen: words and audio, two languages | `python3 tools/emu/example_status.py IMAGE arm/voice.elf` |
 | `example_name_editor.py` | the name editor, key by key | same arguments |
+| `example_record_status.py` | Play/Pause during a recording: elapsed and remaining time, battery | same arguments, then a language |
 | `example_speech_toggle.py` | holding Stop: speech off, silence, speech on; short Stop still gives the status | same arguments |
 | `example_value_screen.py` | the value screen (HP Alert Vol, Line Out Level / Delay, Contrast, Input HPF / Delay), value by value | same arguments, then a language (`FR`, `L6`...) |
 | `emu_task.py` | every clip of a bank through the engine, compared with the PC decoder; worst cost per tick, stack peaks, decode errors; any record rate | `python3 tools/emu/emu_task.py arm/voice.elf build/flash_bank_all/flash_bank.bin [clips] [rate]` |

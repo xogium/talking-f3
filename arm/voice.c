@@ -343,6 +343,7 @@ static uint32_t g_mt_node, g_mt_sel = 0xFFFFFFFFu, g_mt_tick, g_mt_title, g_mt_c
  * 5 = external power; FUN_80035980 -> FUN_80004d60 icon); battery type u8 @0x804BEC02
  * (0 Alkaline 1 Ni-MH 2 Lithium = sids 67..69). */
 #define STATUS_KEY_BIT 3
+#define PLAY_KEY_BIT   5               /* Play/Pause (see the play/pause block in voice_poll) */
 static volatile uint32_t g_status_req;
 static int      g_mt_primed;
 
@@ -1114,11 +1115,29 @@ void voice_poll(void){
             if (!toggled && ++held >= need){ toggled = 1; speech_toggle(); return; }
         } else if (was && !toggled && idle_at_press) g_status_req = 1u;   /* released early */
     }
+    {   /* Play/Pause during a recording: Zoom's home-screen handler ignores it while recording
+         * (FUN_8003eb78 case 5 returns when the record state u16 0x80301676 is not 0), so it is
+         * free: say the elapsed time, then the remaining time and the battery. Raw bit 5 (the
+         * firmware's key dispatcher at 0x8008d59e: bit 3 Stop, bit 5 Play/Pause, bit 6 Menu). */
+        static uint32_t prev_pp;
+        uint32_t dn = (~(*(volatile uint32_t*)0x80490BACu) >> PLAY_KEY_BIT) & 1u;
+        if (dn && !prev_pp && SCR_CUR == SCR_HOME && *(volatile int16_t*)0x80301676u != 0
+            && *(volatile uint32_t*)0x80546CB0u != 0xFFFFFFFFu) g_status_req = 2u;
+        prev_pp = dn;
+    }
     if (g_status_req){                                  /* on-demand home status */
+        uint32_t recording = (g_status_req == 2u);
         g_status_req = 0;
         uint32_t total = *(volatile uint32_t*)0x80301680u, el = *(volatile uint32_t*)0x80546CB0u;
         uint32_t rem = (el != 0xFFFFFFFFu && el < total) ? total - el : (el == 0xFFFFFFFFu ? total : 0u);
         say_clear();
+        if (recording && el < 360000u){                 /* "Elapsed Time" h hours m minutes s seconds */
+            uint32_t h = el / 3600u, mi = (el % 3600u) / 60u, sc = el % 60u;
+            say_add(36u);
+            if (h){ say_int(h); say_add(751u); }
+            if (h || mi){ say_int(mi); say_add(752u); }
+            say_int(sc); say_add(CLIP_SECONDS);
+        }
         say_add(37u);                                   /* "Remaining Time" */
         if (rem < 360000u){
             uint32_t h = rem / 3600u, mi = (rem % 3600u) / 60u;
@@ -1130,7 +1149,7 @@ void voice_poll(void){
         if (lv == 5u) say_add(754u);                    /* "external power" */
         else if (lv <= 4u){ say_int(lv); say_add(CLIP_OF); say_int(4u); }
         if (bt <= 2u) say_add(67u + bt);                /* Alkaline / Ni-MH / Lithium */
-        { uint16_t nm[64];                              /* "next file": the name the next take gets */
+        if (!recording){ uint16_t nm[64];               /* "next file": the name the next take gets */
           if (next_rec_name(nm, 64u)){ say_add(CLIP_NEXT_FILE); say_text(nm); } }
 #if OPUS_PROBE
         { uint32_t us = g_omaxcyc / 528u; say_int(us > 9999u ? 9999u : us);
