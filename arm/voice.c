@@ -611,6 +611,9 @@ static int pu_say(uint32_t n, int all){
 static inline int scr_ready(uint32_t s){ return SCR_CUR == s && (*(volatile uint32_t*)s & 4u); }
 #define SCR_MENU    0x8020742Cu        /* the menu tree screen */
 #define SCR_HOME    0x8020764Cu        /* home screen (object 18) */
+#define SCR_USB_HOME 0x802073CCu       /* home screen in USB audio interface mode: where leaving the
+                                        * menu goes when FUN_80009ba0 says USB mode (FUN_8002d6d0) */
+static inline int is_home(uint32_t s){ return s == SCR_HOME || s == SCR_USB_HOME; }
 #define SCR_FINDER  0x8020748Cu        /* file list */
 #define SCR_PLAY    0x8020762Cu        /* playback screen (INFO / DELETE soft keys) */
 #define SCR_INFO    0x8020746Cu        /* file INFO (opened from playback) */
@@ -1338,7 +1341,8 @@ void voice_poll(void){
     }
     /* Menus. The navigation state stays readable in RAM on every screen, including home and a
      * screen that is still opening, and there it is stale (the menu last shown). So menu speech
-     * only happens on a non-home screen whose "initialised and drawn" bit is set; elsewhere the
+     * only happens on a non-home screen (home, or the USB-interface home: 2026-10-30, Casey heard
+     * "Menu, Exit USB Audio I/F" again on leaving the menu in USB mode) whose "initialised and drawn" bit is set; elsewhere the
      * position is tracked silently. Re-entering a menu: the F3 reopens it where it was left, so
      * the position alone looks unchanged (Casey: Menu, back, Menu again: silent; same for the
      * Input 1 / 2 settings): any switch to a screen other than home marks the next menu as
@@ -1348,7 +1352,7 @@ void voice_poll(void){
     {
         static uint32_t scr_seen;
         uint32_t sc = SCR_CUR;
-        if (sc != scr_seen){ scr_seen = sc; if (sc != SCR_HOME){ g_mt_fresh = 1; g_mt_cand = 0xFFFFFFFFu; } }
+        if (sc != scr_seen){ scr_seen = sc; if (!is_home(sc)){ g_mt_fresh = 1; g_mt_cand = 0xFFFFFFFFu; } }
     }
     if (g_scr_last){                                    /* left a special screen */
         g_scr_last = 0;
@@ -1357,7 +1361,7 @@ void voice_poll(void){
     int mt_ok = ok;                                     /* menu state readable at all */
     {
         uint32_t sc = SCR_CUR;
-        int live = ok && sc != SCR_HOME && ram_ptr_ok(sc, 4) && (*(volatile uint32_t*)sc & 4u);
+        int live = ok && !is_home(sc) && ram_ptr_ok(sc, 4) && (*(volatile uint32_t*)sc & 4u);
         if (ok && !live){                               /* home / opening screen: follow silently */
             g_mt_node = node; g_mt_sel = sel; g_mt_title = title; g_mt_chk = chk;
             ok = 0;

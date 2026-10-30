@@ -9,7 +9,8 @@ import sys
 from f3emu import F3Emu, SCREENS, SCR_CUR
 
 LEVEL, NODES, ROW = 0x804BF76C, 0x804BF774, 0x804BF838
-MAIN, OUTPUT, INPUT1 = 0x8020A3D8, 0x80209A28, 0x8020A3B4
+MAIN, OUTPUT, INPUT1, USB_MENU = 0x8020A3D8, 0x80209A28, 0x8020A3B4, 0x8020A300
+USB_HOME = 0x802073CC              # the home screen in USB audio interface mode
 OTHER_SCREEN = 0x8020744C          # stands in for a screen other than the menu (e.g. Input 1)
 e = F3Emu(sys.argv[1], sys.argv[2]); e.boot()
 
@@ -31,4 +32,7 @@ state(2, 0, INPUT1, row=0); screen(OTHER_SCREEN);            step("Up: Input 1 s
 screen(SCREENS["menu"], ready=False);                        step("Menu: menu screen opening, state still Input1", 0.05)
 state(0, 0, MAIN, row=0); e.w32(SCREENS["menu"], 6);         step("  ...menu drawn, main menu")
 state(0, 0, MAIN, row=1);                                    step("Down: scrolling still immediate")
+screen(USB_HOME);                                            step("USB audio interface mode: its home screen")
+state(0, 0, USB_MENU, row=0); screen(SCREENS["menu"]);       step("Menu: USB menu, on Exit USB Audio I/F")
+screen(USB_HOME);                                            step("Menu: back to the USB home (silent)")
 print("faults:", e.faults or "none")

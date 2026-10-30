@@ -55,6 +55,7 @@ marked "file". See `TECHNICAL.md` for how they fit together.
 | 0x802A3D60 | per-language string table pointers: string n = `*(*(0x802A3D60 + L*4) + n*4)` (UTF-16) |
 | 0x802087A4 | widget descriptor table; string id at descriptor + 4; widget 4 = 0x802087B4 |
 | 0x8020740C | screen objects, 32 bytes each; word 0 bit 2 = initialised and drawn |
+| 0x802073CC / 0x802073EC | two more screen objects before that table: the home screen in USB audio interface mode (FUN_8002d6d0 goes there instead of 0x8020764C), and a start-up screen (FUN_8000a2b0) |
 | 0x8020A55C | current screen object pointer |
 | screen objects | index: address. 1: 742C menu, 2: 744C USB file transfer, 3: 746C file INFO, 4: 748C Finder, 5: 74AC name editor, 6: 74CC a system screen (shared draw 0x80020030), 7: 74EC dialogs, 8: 750C Set Date/Time, 10/12/13: 754C/758C/75AC timecode, 15: 75EC timecode/BT info, 16: 760C Versions, 17: 762C playback, 18: 764C home |
 | 0x80490BAC | raw button state u32, active low. Bits, from the key dispatcher (jump table at 0x8008d59e, event = bit*3 + 0 release / 1 press / 2 hold, then FUN_80021a50 calls the current screen's handler table at screen+0x1C): bit 3 Stop, bit 5 Play/Pause, bit 6 Menu, bits 8-11 back / up / down / enter (handler slots 6-9); slot = 4 for Stop, 3 for Play/Pause, 5 for Menu |
