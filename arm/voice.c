@@ -335,6 +335,7 @@ static inline int clip_ok(uint32_t id){
 /* (start-up: voice_tick does nothing until the home screen or 12 s, see there) */
 static inline int mt_rec_ok(uint32_t a){ return (a & 3u) == 0u && a >= MT_LO && a + 0x24u <= MT_HI; }
 static uint32_t g_mt_node, g_mt_sel = 0xFFFFFFFFu, g_mt_tick, g_mt_title, g_mt_chk;
+static uint32_t g_mt_fresh, g_mt_cand = 0xFFFFFFFFu;     /* reopened menu pending / stable-position candidate */
 /* On-demand status: Stop pressed on the idle home screen (Stop does nothing there in the
  * stock firmware; keys reach a central dispatcher before any screen, so we read the raw
  * key state: u32 @0x80490BAC, active low, Stop = bit 3). Reads: remaining record time = u32 @0x80301680 (total seconds available) minus elapsed
@@ -1335,18 +1336,37 @@ void voice_poll(void){
         g_dt_pos = DT_POS; g_dt_edit = e; g_dt_val = v;
         return;
     }
-    {   /* Re-entering a menu: the F3 reopens it where it was left, so the position alone looks
-         * unchanged and nothing was said (Casey: Menu, back, Menu again: silent; same for the
-         * Input 1 / 2 settings). Any switch to a screen other than home forgets the position. */
+    /* Menus. The navigation state stays readable in RAM on every screen, including home and a
+     * screen that is still opening, and there it is stale (the menu last shown). So menu speech
+     * only happens on a non-home screen whose "initialised and drawn" bit is set; elsewhere the
+     * position is tracked silently. Re-entering a menu: the F3 reopens it where it was left, so
+     * the position alone looks unchanged (Casey: Menu, back, Menu again: silent; same for the
+     * Input 1 / 2 settings): any switch to a screen other than home marks the next menu as
+     * "fresh", announced once its position has held for two polls. (2026-10-30: forgetting the
+     * position instead made stale reads during screen switches speak the old menu: on leaving a
+     * menu, and "Input 1 ..." before "Menu".) */
+    {
         static uint32_t scr_seen;
         uint32_t sc = SCR_CUR;
-        if (sc != scr_seen){ scr_seen = sc; if (sc != SCR_HOME) g_mt_node = 0; }
+        if (sc != scr_seen){ scr_seen = sc; if (sc != SCR_HOME){ g_mt_fresh = 1; g_mt_cand = 0xFFFFFFFFu; } }
     }
     if (g_scr_last){                                    /* left a special screen */
         g_scr_last = 0;
         if (SCR_CUR == SCR_MENU) g_mt_sel = 0xFFFFFFFFu;   /* back in the menu: re-read the row */
     }
-    if (ok && node != g_mt_node){                       /* entered / left a menu */
+    int mt_ok = ok;                                     /* menu state readable at all */
+    {
+        uint32_t sc = SCR_CUR;
+        int live = ok && sc != SCR_HOME && ram_ptr_ok(sc, 4) && (*(volatile uint32_t*)sc & 4u);
+        if (ok && !live){                               /* home / opening screen: follow silently */
+            g_mt_node = node; g_mt_sel = sel; g_mt_title = title; g_mt_chk = chk;
+            ok = 0;
+        }
+    }
+    if (ok && (g_mt_fresh || node != g_mt_node)){       /* entered / left / reopened a menu */
+        uint32_t key = node ^ (sel << 26) ^ (sel >> 6);
+        if (key != g_mt_cand){ g_mt_cand = key; return; }    /* must hold for two polls */
+        g_mt_fresh = 0; g_mt_cand = 0xFFFFFFFFu;
         g_mt_node = node; g_mt_sel = sel; g_mt_title = title; g_mt_chk = chk; g_last_id = wid;
         say_clear(); say_add(title); say_add(sid); if (sel == chk) say_add(SEL_CLIP); say_go();
         return;
@@ -1363,7 +1383,7 @@ void voice_poll(void){
     }
     if (wid != g_last_id){                              /* widget-4 fallback (other screens) */
         g_last_id = wid;
-        if (!(ok && wid == g_mt_title)){ say_clear(); say_sid(wid); say_go(); }
+        if (!(mt_ok && wid == g_mt_title)){ say_clear(); say_sid(wid); say_go(); }
     }
     return;
 }

@@ -182,6 +182,7 @@ All are in `tools/emu/` and run from the project root.
 | `example_record_switch.py` | runs Zoom's own record-switch handlers: with the option the switch only starts, Stop still stops | same arguments |
 | `example_record_status.py` | Play/Pause during a recording: elapsed and remaining time, battery | same arguments, then a language |
 | `example_speech_toggle.py` | holding Stop: speech off, silence, speech on; short Stop still gives the status | same arguments |
+| `example_menu_switch.py` | menu speech across screen switches with Zoom's real menu records: leaving, reopening, the Input 1 settings, nothing stale | same arguments |
 | `example_value_screen.py` | the value screen (HP Alert Vol, Line Out Level / Delay, Contrast, Input HPF / Delay), value by value | same arguments, then a language (`FR`, `L6`...) |
 | `emu_task.py` | every clip of a bank through the engine, compared with the PC decoder; worst cost per tick, stack peaks, decode errors; any record rate | `python3 tools/emu/emu_task.py arm/voice.elf build/flash_bank_all/flash_bank.bin [clips] [rate]` |
 | `emu_seam_ml.py` | Playback: "Play" then the file name, with no recording heard between the clips | `python3 tools/emu/emu_seam_ml.py 0` (language 0..6) |
